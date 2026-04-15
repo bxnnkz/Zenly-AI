@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zenly AI — Your Smart Daily Assistant</title>
+  <meta name="description" content="Write, plan, ask, and summarize — powered by AI. 25 free requests every day. Upgrade to Pro for unlimited access." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --mint:   #7FFFD4;
+      --mint2:  #4fc3a1;
+      --gold:   #FFD700;
+      --peach:  #FF8C69;
+      --lavender: #DDA0FF;
+      --bg:     #080808;
+      --bg2:    #0d0d0d;
+      --bg3:    #111;
+      --border: #161616;
+      --border2:#1e1e1e;
+      --text:   #e8e8e8;
+      --muted:  #444;
+      --dim:    #2a2a2a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ── CUSTOM CURSOR ── */
+    .cursor {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--mint); position: fixed;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%,-50%);
+      transition: transform 0.1s, width 0.2s, height 0.2s, opacity 0.2s;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1px solid rgba(127,255,212,0.4);
+      position: fixed; pointer-events: none; z-index: 9998;
+      transform: translate(-50%,-50%);
+      transition: transform 0.15s ease, width 0.3s, height 0.3s;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 1; opacity: 0.4;
+    }
+
+    /* ── GLOW ORBS ── */
+    .orb {
+      position: fixed; border-radius: 50%;
+      filter: blur(120px); pointer-events: none; z-index: 0;
+    }
+    .orb-1 { width: 600px; height: 600px; background: rgba(127,255,212,0.04); top: -200px; right: -200px; }
+    .orb-2 { width: 400px; height: 400px; background: rgba(255,140,105,0.03); bottom: 100px; left: -150px; }
+
+    /* ── LAYOUT ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 18px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(8,8,8,0.85); backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo-icon {
+      width: 34px; height: 34px; border-radius: 9px;
+      background: linear-gradient(135deg, var(--mint), var(--mint2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; color: #000; font-weight: 900;
+    }
+    .nav-logo-text { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; color: #fff; letter-spacing: -0.3px; }
+    .nav-logo-text span { color: var(--mint); }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
+    .nav-links a:hover { color: #fff; }
+    .nav-cta {
+      padding: 9px 20px; border-radius: 9px; border: none;
+      background: linear-gradient(135deg, var(--mint), var(--mint2));
+      color: #000; font-weight: 800; font-size: 13px;
+      font-family: 'Space Mono', monospace; cursor: pointer;
+      text-decoration: none; display: inline-block;
+      box-shadow: 0 4px 16px rgba(127,255,212,0.2);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(127,255,212,0.3); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 120px 24px 80px;
+      position: relative; z-index: 2;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px; border-radius: 20px;
+      background: rgba(127,255,212,0.06); border: 1px solid rgba(127,255,212,0.15);
+      color: var(--mint); font-size: 12px; font-family: 'Space Mono', monospace;
+      letter-spacing: 1px; margin-bottom: 32px;
+      animation: fadeUp 0.6s ease both;
+    }
+    .hero-badge::before { content: '✦'; font-size: 10px; }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(48px, 8vw, 96px);
+      font-weight: 900; line-height: 1.0;
+      letter-spacing: -3px; color: #fff;
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+    .hero-title em { color: var(--mint); font-style: normal; }
+    .hero-title .line2 { color: #333; }
+    .hero-sub {
+      font-size: 18px; color: var(--muted); line-height: 1.8;
+      max-width: 480px; margin: 0 auto 48px;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+    .hero-sub strong { color: #888; font-weight: 500; }
+    .hero-actions {
+      display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+    .btn-primary {
+      padding: 16px 32px; border-radius: 14px; border: none;
+      background: linear-gradient(135deg, var(--mint), var(--mint2));
+      color: #000; font-weight: 800; font-size: 15px;
+      font-family: 'Space Mono', monospace; cursor: pointer;
+      text-decoration: none; display: inline-block;
+      box-shadow: 0 8px 40px rgba(127,255,212,0.25);
+      transition: transform 0.2s, box-shadow 0.2s;
+      animation: glow 3s ease-in-out infinite;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 48px rgba(127,255,212,0.35); }
+    .btn-secondary {
+      padding: 16px 32px; border-radius: 14px;
+      border: 1px solid var(--border2); background: transparent;
+      color: var(--muted); font-size: 15px; cursor: pointer;
+      text-decoration: none; display: inline-block;
+      transition: border-color 0.2s, color 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn-secondary:hover { border-color: #444; color: #888; }
+    .hero-note {
+      margin-top: 20px; font-size: 13px; color: var(--dim);
+      font-family: 'Space Mono', monospace; letter-spacing: 0.5px;
+      animation: fadeUp 0.6s 0.4s ease both;
+    }
+
+    /* ── HERO PREVIEW ── */
+    .hero-preview {
+      margin-top: 72px; position: relative;
+      animation: fadeUp 0.8s 0.5s ease both;
+      max-width: 720px; width: 100%;
+    }
+    .preview-glow {
+      position: absolute; inset: -40px;
+      background: radial-gradient(ellipse at center, rgba(127,255,212,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .preview-window {
+      background: #0a0a0a; border: 1px solid var(--border);
+      border-radius: 20px; overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03);
+    }
+    .preview-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .preview-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .preview-title { margin-left: 8px; font-size: 12px; color: #333; font-family: 'Space Mono', monospace; }
+    .preview-body { padding: 24px; }
+    .preview-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+    .preview-tab {
+      padding: 7px 14px; border-radius: 8px; font-size: 11px;
+      font-family: 'Space Mono', monospace; font-weight: 700;
+      border: 1px solid transparent; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .preview-tab.active { background: #0f0f0f; }
+    .preview-messages { display: flex; flex-direction: column; gap: 12px; }
+    .preview-msg {
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .preview-msg.user { flex-direction: row-reverse; }
+    .preview-avatar {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--mint), var(--mint2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: #000; margin-top: 2px;
+    }
+    .preview-bubble {
+      padding: 11px 15px; border-radius: 14px; font-size: 14px;
+      line-height: 1.6; max-width: 75%; font-family: 'DM Sans', sans-serif;
+    }
+    .preview-bubble.ai { background: #111; border: 1px solid #1c1c1c; color: #ccc; border-radius: 14px 14px 14px 4px; }
+    .preview-bubble.user { background: linear-gradient(135deg,#162d1f,#112419); border: 1px solid #1e4a2a; color: #9dffc8; border-radius: 14px 14px 4px 14px; }
+    .preview-input {
+      display: flex; gap: 8px; align-items: center; margin-top: 16px;
+      background: #0d0d0d; border: 1px solid #181818; border-radius: 12px; padding: 10px 12px;
+    }
+    .preview-input-text { flex: 1; color: #333; font-size: 13px; font-family: 'DM Sans', sans-serif; }
+    .preview-send {
+      width: 30px; height: 30px; border-radius: 7px;
+      background: linear-gradient(135deg, var(--mint), var(--mint2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: #000; font-weight: 900;
+    }
+
+    /* ── TOOLS SECTION ── */
+    .section { padding: 100px 0; position: relative; z-index: 2; }
+    .section-label {
+      font-size: 11px; color: var(--mint); font-family: 'Space Mono', monospace;
+      letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-label::before { content: ''; width: 24px; height: 1px; background: var(--mint); }
+    .section-title {
+      font-family: 'Playfair Display', serif; font-size: clamp(32px, 5vw, 52px);
+      font-weight: 900; color: #fff; letter-spacing: -1px; line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .section-sub { font-size: 16px; color: var(--muted); line-height: 1.8; max-width: 480px; }
+
+    .tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 56px; }
+    @media (min-width: 768px) { .tools-grid { grid-template-columns: repeat(4, 1fr); } }
+    .tool-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 28px 22px;
+      transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+      cursor: default; position: relative; overflow: hidden;
+    }
+    .tool-card::before {
+      content: ''; position: absolute; inset: 0; opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .tool-card:hover { transform: translateY(-4px); }
+    .tool-card:hover::before { opacity: 1; }
+    .tool-card[data-color="#7FFFD4"]:hover { border-color: rgba(127,255,212,0.3); box-shadow: 0 20px 60px rgba(127,255,212,0.08); }
+    .tool-card[data-color="#FFD700"]:hover { border-color: rgba(255,215,0,0.3); box-shadow: 0 20px 60px rgba(255,215,0,0.08); }
+    .tool-card[data-color="#FF8C69"]:hover { border-color: rgba(255,140,105,0.3); box-shadow: 0 20px 60px rgba(255,140,105,0.08); }
+    .tool-card[data-color="#DDA0FF"]:hover { border-color: rgba(221,160,255,0.3); box-shadow: 0 20px 60px rgba(221,160,255,0.08); }
+    .tool-icon { font-size: 32px; margin-bottom: 16px; display: block; }
+    .tool-name { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+    .tool-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    /* ── STATS ── */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px;
+      border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
+      margin-top: 80px;
+    }
+    @media (min-width: 768px) { .stats-row { grid-template-columns: repeat(4, 1fr); } }
+    .stat-cell {
+      padding: 32px 28px; background: var(--bg2); text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .stat-cell:last-child { border-right: none; }
+    .stat-number {
+      font-family: 'Playfair Display', serif; font-size: 40px;
+      font-weight: 900; color: var(--mint); line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-label { font-size: 12px; color: var(--muted); font-family: 'Space Mono', monospace; letter-spacing: 0.5px; }
+
+    /* ── PRICING ── */
+    .pricing-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 56px; max-width: 700px; margin-left: auto; margin-right: auto; }
+    @media (min-width: 640px) { .pricing-grid { grid-template-columns: repeat(2, 1fr); } }
+    .pricing-card {
+      border-radius: 24px; padding: 36px 28px;
+      border: 1px solid var(--border2); background: var(--bg2);
+      position: relative; transition: transform 0.3s;
+    }
+    .pricing-card:hover { transform: translateY(-4px); }
+    .pricing-card.pro {
+      background: linear-gradient(160deg, #0d1f14 0%, #080808 60%);
+      border-color: rgba(127,255,212,0.25);
+      box-shadow: 0 0 60px rgba(127,255,212,0.06);
+    }
+    .pricing-badge {
+      display: inline-block; padding: 3px 12px; border-radius: 20px;
+      background: linear-gradient(135deg, var(--mint), var(--mint2));
+      color: #000; font-size: 10px; font-family: 'Space Mono', monospace;
+      font-weight: 700; letter-spacing: 1px; margin-bottom: 20px;
+    }
+    .pricing-name { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 8px; }
+    .pricing-price {
+      display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px;
+    }
+    .price-num { font-family: 'Playfair Display', serif; font-size: 52px; font-weight: 900; color: #fff; line-height: 1; }
+    .price-num.free { font-size: 36px; color: #555; }
+    .price-period { font-size: 14px; color: var(--muted); font-family: 'DM Sans', sans-serif; }
+    .pricing-desc { font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.7; }
+    .pricing-features { list-style: none; margin-bottom: 32px; }
+    .pricing-features li {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 14px; color: #888; margin-bottom: 12px;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .pricing-features li .check { color: var(--mint); font-size: 12px; flex-shrink: 0; }
+    .pricing-features li.dim { color: #333; }
+    .pricing-features li.dim .check { color: #333; }
+    .pricing-btn {
+      display: block; width: 100%; padding: 14px; border-radius: 12px;
+      text-align: center; font-family: 'Space Mono', monospace;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+      text-decoration: none; cursor: pointer; border: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .pricing-btn.free-btn {
+      background: transparent; border: 1px solid var(--border2); color: var(--muted);
+    }
+    .pricing-btn.free-btn:hover { border-color: #444; color: #888; }
+    .pricing-btn.pro-btn {
+      background: linear-gradient(135deg, var(--mint), var(--mint2)); color: #000;
+      box-shadow: 0 6px 24px rgba(127,255,212,0.2);
+    }
+    .pricing-btn.pro-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 32px rgba(127,255,212,0.3); }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 56px; }
+    @media (min-width: 640px) { .testimonials-grid { grid-template-columns: repeat(3, 1fr); } }
+    .testimonial-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 18px; padding: 28px 24px;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .testimonial-card:hover { transform: translateY(-3px); border-color: var(--border2); }
+    .testimonial-stars { color: var(--gold); font-size: 14px; margin-bottom: 14px; letter-spacing: 2px; }
+    .testimonial-text { font-size: 14px; color: #888; line-height: 1.8; margin-bottom: 20px; font-style: italic; }
+    .testimonial-author { display: flex; align-items: center; gap: 10px; }
+    .testimonial-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 900; color: #000;
+      font-family: 'Playfair Display', serif;
+    }
+    .testimonial-name { font-size: 14px; color: #fff; font-weight: 600; }
+    .testimonial-role { font-size: 12px; color: var(--muted); }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      padding: 100px 24px; text-align: center;
+      position: relative; z-index: 2;
+    }
+    .cta-box {
+      background: linear-gradient(160deg, #0d1f14 0%, #080808 100%);
+      border: 1px solid rgba(127,255,212,0.15);
+      border-radius: 28px; padding: 72px 40px;
+      max-width: 700px; margin: 0 auto;
+      box-shadow: 0 0 80px rgba(127,255,212,0.05);
+      position: relative; overflow: hidden;
+    }
+    .cta-box::before {
+      content: ''; position: absolute; top: -100px; left: 50%;
+      transform: translateX(-50%);
+      width: 400px; height: 400px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(127,255,212,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-title { font-family: 'Playfair Display', serif; font-size: clamp(32px, 5vw, 52px); font-weight: 900; color: #fff; margin-bottom: 16px; letter-spacing: -1px; line-height: 1.1; }
+    .cta-sub { font-size: 16px; color: var(--muted); margin-bottom: 40px; line-height: 1.8; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 24px; position: relative; z-index: 2;
+    }
+    .footer-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 20px;
+    }
+    .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+    .footer-links a { color: var(--dim); font-size: 13px; text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--muted); }
+    .footer-copy { color: var(--dim); font-size: 12px; font-family: 'Space Mono', monospace; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes glow {
+      0%,100% { box-shadow: 0 8px 40px rgba(127,255,212,0.2); }
+      50%      { box-shadow: 0 8px 60px rgba(127,255,212,0.4); }
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-8px); }
+    }
+    .reveal {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── MOBILE ── */
+    @media (max-width: 640px) {
+      nav .nav-links { display: none; }
+      .hero-title { letter-spacing: -2px; }
+      .stat-cell { padding: 24px 16px; }
+      .stat-number { font-size: 32px; }
+      .cta-box { padding: 48px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Cursor -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- Background -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-icon">✦</div>
+      <span class="nav-logo-text">Zenly <span>AI</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#tools">Tools</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#testimonials">Reviews</a>
+    </div>
+    <a href="#get-started" class="nav-cta">GET STARTED FREE</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">NOW LIVE — POWERED BY CLAUDE AI</div>
+    <h1 class="hero-title">
+      Your AI.<br/>
+      <em>Every day.</em><br/>
+      <span class="line2">No limits.</span>
+    </h1>
+    <p class="hero-sub">
+      Write emails, plan your day, ask anything, summarize anything —
+      <strong>all in one place.</strong> 25 free requests daily, no credit card needed.
+    </p>
+    <div class="hero-actions">
+      <a href="#get-started" class="btn-primary">START FOR FREE ✦</a>
+      <a href="#tools" class="btn-secondary">See how it works</a>
+    </div>
+    <p class="hero-note">✓ Free forever &nbsp;·&nbsp; ✓ No card required &nbsp;·&nbsp; ✓ 25 daily requests</p>
+
+    <!-- App Preview -->
+    <div class="hero-preview container">
+      <div class="preview-glow"></div>
+      <div class="preview-window">
+        <div class="preview-bar">
+          <div class="preview-dot" style="background:#ff5f57"></div>
+          <div class="preview-dot" style="background:#febc2e"></div>
+          <div class="preview-dot" style="background:#28c840"></div>
+          <span class="preview-title">Zenly AI — Daily Assistant</span>
+        </div>
+        <div class="preview-body">
+          <div class="preview-tabs">
+            <div class="preview-tab active" style="border-color:rgba(127,255,212,0.3);color:#7FFFD4;">✦ Ask Anything</div>
+            <div class="preview-tab" style="color:#444;">✐ Write For Me</div>
+            <div class="preview-tab" style="color:#444;">◈ Daily Planner</div>
+            <div class="preview-tab" style="color:#444;">◎ Summarize</div>
+          </div>
+          <div class="preview-messages">
+            <div class="preview-msg user">
+              <div class="preview-bubble user">Help me write a subject line for my job application email</div>
+            </div>
+            <div class="preview-msg">
+              <div class="preview-avatar">✦</div>
+              <div class="preview-bubble ai">Here are 3 strong subject lines:<br/><br/>
+                1. <strong style="color:#7FFFD4">"Application for [Role] — [Your Name]"</strong><br/>
+                2. <strong style="color:#7FFFD4">"Excited to Apply: [Role] at [Company]"</strong><br/>
+                3. <strong style="color:#7FFFD4">"[Your Name] | [Role] Application"</strong><br/><br/>
+                Option 1 is the safest for corporate roles. Option 2 works well for startups.
+              </div>
+            </div>
+            <div class="preview-msg user">
+              <div class="preview-bubble user">Perfect, use option 2 and write the full email</div>
+            </div>
+          </div>
+          <div class="preview-input">
+            <span class="preview-input-text">Ask me anything...</span>
+            <div class="preview-send">↑</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="container">
+    <div class="stats-row reveal">
+      <div class="stat-cell">
+        <div class="stat-number">4</div>
+        <div class="stat-label">AI TOOLS</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-number">25</div>
+        <div class="stat-label">FREE DAILY</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-number">$7.99</div>
+        <div class="stat-label">PRO / MONTH</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-number">∞</div>
+        <div class="stat-label">PRO REQUESTS</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLS -->
+  <section class="section" id="tools">
+    <div class="container">
+      <div class="reveal">
+        <div class="section-label">WHAT ZENLY CAN DO</div>
+        <h2 class="section-title">Four tools.<br/>One daily habit.</h2>
+        <p class="section-sub">Everything you need to get through your day smarter, faster, and with less effort.</p>
+      </div>
+      <div class="tools-grid">
+        <div class="tool-card reveal" data-color="#7FFFD4" style="--delay:0s">
+          <span class="tool-icon" style="color:#7FFFD4">✦</span>
+          <div class="tool-name" style="color:#7FFFD4">ASK ANYTHING</div>
+          <div class="tool-desc">Get clear, practical answers to any question. No fluff, no filler — just what you need to know.</div>
+        </div>
+        <div class="tool-card reveal" data-color="#FFD700" style="--delay:0.1s">
+          <span class="tool-icon" style="color:#FFD700">✐</span>
+          <div class="tool-name" style="color:#FFD700">WRITE FOR ME</div>
+          <div class="tool-desc">Emails, bios, cover letters, captions — tell Zenly what you need and get polished, ready-to-use text.</div>
+        </div>
+        <div class="tool-card reveal" data-color="#FF8C69" style="--delay:0.2s">
+          <span class="tool-icon" style="color:#FF8C69">◈</span>
+          <div class="tool-name" style="color:#FF8C69">DAILY PLANNER</div>
+          <div class="tool-desc">Drop your tasks and let Zenly build your day. Time-blocked, prioritized, and actually achievable.</div>
+        </div>
+        <div class="tool-card reveal" data-color="#DDA0FF" style="--delay:0.3s">
+          <span class="tool-icon" style="color:#DDA0FF">◎</span>
+          <div class="tool-name" style="color:#DDA0FF">SUMMARIZE</div>
+          <div class="tool-desc">Paste any article, email, or document. Get the key points in seconds — no reading required.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="section" id="pricing">
+    <div class="container">
+      <div class="reveal" style="text-align:center">
+        <div class="section-label" style="justify-content:center">SIMPLE PRICING</div>
+        <h2 class="section-title" style="text-align:center">Start free.<br/>Upgrade when ready.</h2>
+        <p class="section-sub" style="margin:0 auto; text-align:center">No hidden fees. No surprise charges. Cancel anytime.</p>
+      </div>
+      <div class="pricing-grid">
+
+        <!-- Free -->
+        <div class="pricing-card reveal">
+          <div class="pricing-name">Free</div>
+          <div class="pricing-price">
+            <span class="price-num free">$0</span>
+            <span class="price-period">/ forever</span>
+          </div>
+          <p class="pricing-desc">Everything you need to get started, every single day.</p>
+          <ul class="pricing-features">
+            <li><span class="check">✓</span> 25 AI requests per day</li>
+            <li><span class="check">✓</span> All 4 tools included</li>
+            <li><span class="check">✓</span> Resets every 24 hours</li>
+            <li><span class="check">✓</span> No credit card needed</li>
+            <li class="dim"><span class="check">—</span> Unlimited requests</li>
+            <li class="dim"><span class="check">—</span> Priority speed</li>
+          </ul>
+          <a href="#get-started" class="pricing-btn free-btn">GET STARTED FREE</a>
+        </div>
+
+        <!-- Pro -->
+        <div class="pricing-card pro reveal">
+          <div class="pricing-badge">MOST POPULAR</div>
+          <div class="pricing-name" style="color:#7FFFD4">Pro</div>
+          <div class="pricing-price">
+            <span class="price-num">$7</span>
+            <span style="font-family:'Playfair Display',serif;font-size:28px;color:#7FFFD4;line-height:1;align-self:flex-end">.99</span>
+            <span class="price-period">/ month</span>
+          </div>
+          <p class="pricing-desc">Unlimited AI every day. For people who mean business.</p>
+          <ul class="pricing-features">
+            <li><span class="check">✓</span> <strong style="color:#ccc">Unlimited</strong> daily AI requests</li>
+            <li><span class="check">✓</span> Priority response speed</li>
+            <li><span class="check">✓</span> All 4 tools, forever</li>
+            <li><span class="check">✓</span> Early access to new features</li>
+            <li><span class="check">✓</span> No ads, ever</li>
+            <li><span class="check">✓</span> Cancel anytime</li>
+          </ul>
+          <a href="https://buy.stripe.com/3cIaERc3Q4IbfLl9HdbZe00" target="_blank" class="pricing-btn pro-btn">START PRO — $7.99/mo →</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="section" id="testimonials">
+    <div class="container">
+      <div class="reveal" style="text-align:center">
+        <div class="section-label" style="justify-content:center">WHAT PEOPLE SAY</div>
+        <h2 class="section-title" style="text-align:center">People love<br/>Zenly AI.</h2>
+      </div>
+      <div class="testimonials-grid">
+        <div class="testimonial-card reveal">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"I use the Write tool every single morning. It saves me 30 minutes on emails alone. Worth every penny."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar" style="background:linear-gradient(135deg,#7FFFD4,#4fc3a1)">M</div>
+            <div>
+              <div class="testimonial-name">Marcus T.</div>
+              <div class="testimonial-role">Marketing Manager</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card reveal">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"The daily planner is insane. I just dump all my tasks in and it organizes my whole day. Game changer."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar" style="background:linear-gradient(135deg,#FF8C69,#e07450)">S</div>
+            <div>
+              <div class="testimonial-name">Sophia R.</div>
+              <div class="testimonial-role">Freelance Designer</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card reveal">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"I summarize every long email thread before I reply now. My response time is 3x faster and my boss noticed."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar" style="background:linear-gradient(135deg,#DDA0FF,#b070e0)">J</div>
+            <div>
+              <div class="testimonial-name">James K.</div>
+              <div class="testimonial-role">Senior Analyst</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section" id="get-started">
+    <div class="cta-box reveal">
+      <div class="hero-badge" style="margin-bottom:24px;display:inline-flex">FREE TO START · NO CARD NEEDED</div>
+      <h2 class="cta-title">Start using Zenly AI<br/>right now.</h2>
+      <p class="cta-sub">Join thousands of people who use Zenly AI every day to work smarter, write better, and get more done.</p>
+      <a href="./zenly-ai" class="btn-primary" style="display:inline-block;font-size:16px;padding:18px 40px">
+        GET STARTED FREE ✦
+      </a>
+      <p style="margin-top:16px;font-size:13px;color:var(--dim);font-family:'Space Mono',monospace">
+        25 free requests every day · Upgrade anytime
+      </p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <a href="#" class="nav-logo" style="text-decoration:none">
+        <div class="nav-logo-icon" style="width:28px;height:28px;font-size:12px">✦</div>
+        <span class="nav-logo-text" style="font-size:16px">Zenly <span>AI</span></span>
+      </a>
+      <div class="footer-links">
+        <a href="#tools">Tools</a>
+        <a href="#pricing">Pricing</a>
+        <a href="https://billing.stripe.com/p/login/3cIaERc3Q4IbfLl9HdbZe00" target="_blank">Billing</a>
+        <a href="mailto:hello@zenlyai.com">Contact</a>
+      </div>
+      <div class="footer-copy">© 2025 Zenly AI · All rights reserved</div>
+    </div>
+  </footer>
+
+  <script>
+    // ── CURSOR ──
+    const cursor = document.getElementById('cursor');
+    const ring   = document.getElementById('cursorRing');
+    let mx=0, my=0, rx=0, ry=0;
+    document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cursor.style.left=mx+'px'; cursor.style.top=my+'px'; });
+    (function animRing() {
+      rx += (mx-rx)*0.12; ry += (my-ry)*0.12;
+      ring.style.left=rx+'px'; ring.style.top=ry+'px';
+      requestAnimationFrame(animRing);
+    })();
+    document.querySelectorAll('a,button,.tool-card,.pricing-card').forEach(el => {
+      el.addEventListener('mouseenter', () => { cursor.style.width='20px'; cursor.style.height='20px'; ring.style.width='54px'; ring.style.height='54px'; });
+      el.addEventListener('mouseleave', () => { cursor.style.width='10px'; cursor.style.height='10px'; ring.style.width='36px'; ring.style.height='36px'; });
+    });
+
+    // ── SCROLL REVEAL ──
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // ── SMOOTH SCROLL ──
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const id = a.getAttribute('href');
+        if (id === '#') return;
+        const el = document.querySelector(id);
+        if (el) { e.preventDefault(); el.scrollIntoView({ behavior:'smooth', block:'start' }); }
+      });
+    });
+
+    // ── TOOL CARD COLORS ──
+    document.querySelectorAll('.tool-card').forEach(card => {
+      const color = card.dataset.color;
+      if (color) card.querySelector('.tool-name').style.color = color;
+    });
+  </script>
+</body>
+</html>
