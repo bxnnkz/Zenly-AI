@@ -5,109 +5,102 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zenly AI</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
     *{margin:0;padding:0;box-sizing:border-box;}
-    body {
-      background:#080808;
-      color:#fff;
-      font-family:'DM Sans',sans-serif;
-      min-height:100vh;
-      padding:20px;
-    }
-    .header {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:30px;
-    }
-    .logo {
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-size:28px;
-      font-weight:900;
-    }
-    .tool-tabs {
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:8px;
-      margin-bottom:30px;
-    }
-    .tool {
-      background:#111;
-      border-radius:12px;
-      padding:16px 8px;
-      text-align:center;
-      border:2px solid transparent;
-    }
-    .tool.active {
-      border-color:#7FFFD4;
-      background:#0f1a14;
-    }
-    .chat-box {
-      background:#111;
-      border-radius:16px;
-      height:420px;
-      padding:20px;
-      overflow-y:auto;
-      margin-bottom:20px;
-    }
-    .input-area {
-      display:flex;
-      gap:10px;
-    }
-    input {
-      flex:1;
-      background:#1e1e1e;
-      border:none;
-      border-radius:9999px;
-      padding:16px 20px;
-      color:#fff;
-      font-size:16px;
-    }
-    button {
-      background:linear-gradient(135deg,#7FFFD4,#4fc3a1);
-      color:#000;
-      border:none;
-      padding:0 28px;
-      border-radius:9999px;
-      font-weight:700;
-    }
+    body{background:#080808;color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;}
+    .header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #111;}
+    .logo{display:flex;align-items:center;gap:8px;font-size:24px;font-weight:900;}
+    .logo-dot{background:linear-gradient(135deg,#7FFFD4,#4fc3a1);width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#000;font-size:18px;}
+    .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px 20px;background:#0a0a0a;}
+    .tab{padding:12px 8px;text-align:center;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+    .tab.active{background:#111;border:1px solid #7FFFD4;color:#7FFFD4;}
+    .content{padding:20px;min-height:calc(100vh - 140px);}
+    .chat{background:#111;border-radius:16px;padding:20px;height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:16px;}
+    .message{padding:14px 18px;border-radius:18px;max-width:80%;font-size:15.5px;line-height:1.5;}
+    .user{background:#162d1f;color:#9dffc8;align-self:flex-end;border-bottom-right-radius:4px;}
+    .ai{background:#1e1e1e;color:#ddd;align-self:flex-start;border-bottom-left-radius:4px;}
+    .input-bar{position:fixed;bottom:20px;left:20px;right:20px;background:#111;border-radius:9999px;display:flex;padding:6px;}
+    input{flex:1;background:transparent;border:none;outline:none;color:#fff;padding:14px 20px;font-size:16px;}
+    button{background:linear-gradient(135deg,#7FFFD4,#4fc3a1);color:#000;border:none;border-radius:9999px;padding:0 28px;font-weight:700;}
+    .back-btn{background:#222;color:#fff;padding:8px 16px;border-radius:9999px;border:none;font-size:14px;}
   </style>
 </head>
 <body>
+
   <div class="header">
-    <div class="logo">✦ Zenly AI</div>
-    <button onclick="window.location.href='/'" style="background:#222;color:#fff;padding:10px 20px;border-radius:9999px;border:none;">Back to Home</button>
+    <div class="logo">
+      <div class="logo-dot">✦</div>
+      Zenly AI
+    </div>
+    <button onclick="window.location.href='/'" class="back-btn">Back to Home</button>
   </div>
 
-  <h1 style="font-family:'Playfair Display',serif;font-size:42px;text-align:center;margin-bottom:8px;">Zenly AI</h1>
-  <p style="text-align:center;color:#7FFFD4;margin-bottom:30px;">Your daily assistant is ready</p>
-
-  <div class="tool-tabs">
-    <div class="tool active">✦ Ask</div>
-    <div class="tool">✐ Write</div>
-    <div class="tool">◈ Plan</div>
-    <div class="tool">◎ Summarize</div>
+  <div class="tabs" id="tabs">
+    <div class="tab active" onclick="switchTool(0)">✦ Ask</div>
+    <div class="tab" onclick="switchTool(1)">✐ Write</div>
+    <div class="tab" onclick="switchTool(2)">◈ Plan</div>
+    <div class="tab" onclick="switchTool(3)">◎ Summarize</div>
   </div>
 
-  <div class="chat-box">
-    <p style="color:#666;text-align:center;margin-top:80px;">👋 Welcome to Zenly AI!<br><br>The full interactive experience is loading.<br><br>Try typing a message below 👇</p>
+  <div class="content">
+    <h1 style="font-family:'Playfair Display',serif;font-size:42px;text-align:center;margin-bottom:4px;">Zenly AI</h1>
+    <p style="text-align:center;color:#7FFFD4;margin-bottom:24px;">Your daily assistant is ready</p>
+
+    <div id="chat" class="chat"></div>
   </div>
 
-  <div class="input-area">
-    <input type="text" placeholder="Ask me anything..." id="input">
-    <button onclick="sendFakeMessage()">Send</button>
+  <div class="input-bar">
+    <input type="text" id="userInput" placeholder="Type your message..." onkeypress="if(event.key==='Enter') sendMessage()">
+    <button onclick="sendMessage()">Send</button>
   </div>
 
   <script>
-    function sendFakeMessage() {
-      const input = document.getElementById('input');
-      if (input.value.trim()) {
-        alert("✅ Message received! (Full AI chat coming in next update)");
-        input.value = '';
-      }
+    let currentTool = 0;
+    const tools = ["Ask Anything", "Write For Me", "Daily Planner", "Summarize"];
+
+    const sampleReplies = {
+      0: ["That's a great question! Here's what I think...", "Interesting point. Let me help you with that."],
+      1: ["Here's a polished version of your text:", "Here's what I would write:"],
+      2: ["Here's your perfect daily plan:", "I've organized your day like this:"],
+      3: ["Key points from that text:", "Here's the summary:"]
+    };
+
+    function switchTool(n) {
+      currentTool = n;
+      document.querySelectorAll('.tab').forEach((t,i)=> t.classList.toggle('active', i===n));
+      document.getElementById('chat').innerHTML = `<p style="color:#666;text-align:center;margin-top:120px;">👋 Switched to ${tools[n]} mode!<br><br>Try typing something below.</p>`;
     }
+
+    function sendMessage() {
+      const input = document.getElementById('userInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const chat = document.getElementById('chat');
+      
+      // Add user message
+      chat.innerHTML += `<div class="message user">${text}</div>`;
+      chat.scrollTop = chat.scrollHeight;
+      input.value = '';
+
+      // Fake AI reply after a tiny delay
+      setTimeout(() => {
+        const replies = sampleReplies[currentTool];
+        const reply = replies[Math.floor(Math.random()*replies.length)];
+        chat.innerHTML += `
+          <div class="message ai">
+            ${reply}<br><br>
+            <small style="color:#555;">(This is a demo — real Claude AI coming soon!)</small>
+          </div>`;
+        chat.scrollTop = chat.scrollHeight;
+      }, 800);
+    }
+
+    // Welcome message on load
+    window.onload = () => {
+      const chat = document.getElementById('chat');
+      chat.innerHTML = `<p style="color:#666;text-align:center;margin-top:100px;">👋 Hi there! I'm Zenly AI.<br>Choose a tool above and start chatting!</p>`;
+    };
   </script>
 </body>
 </html>
