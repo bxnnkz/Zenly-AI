@@ -7,34 +7,41 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
     *{margin:0;padding:0;box-sizing:border-box;}
-    body{background:#080808;color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;}
+    body{background:#080808;color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;overflow:hidden;}
     .header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #111;}
     .logo{display:flex;align-items:center;gap:8px;font-size:24px;font-weight:900;}
     .logo-dot{background:linear-gradient(135deg,#7FFFD4,#4fc3a1);width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#000;font-size:18px;}
     .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px 20px;background:#0a0a0a;}
     .tab{padding:12px 8px;text-align:center;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;}
     .tab.active{background:#111;border:1px solid #7FFFD4;color:#7FFFD4;}
-    .content{padding:20px;min-height:calc(100vh - 140px);}
-    .chat{background:#111;border-radius:16px;padding:20px;height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:16px;}
+    .content{padding:20px;height:calc(100vh - 140px);overflow-y:auto;}
+    .chat{background:#111;border-radius:16px;padding:20px;height:100%;display:flex;flex-direction:column;gap:16px;overflow-y:auto;}
     .message{padding:14px 18px;border-radius:18px;max-width:80%;font-size:15.5px;line-height:1.5;}
     .user{background:#162d1f;color:#9dffc8;align-self:flex-end;border-bottom-right-radius:4px;}
     .ai{background:#1e1e1e;color:#ddd;align-self:flex-start;border-bottom-left-radius:4px;}
     .input-bar{position:fixed;bottom:20px;left:20px;right:20px;background:#111;border-radius:9999px;display:flex;padding:6px;}
     input{flex:1;background:transparent;border:none;outline:none;color:#fff;padding:14px 20px;font-size:16px;}
     button{background:linear-gradient(135deg,#7FFFD4,#4fc3a1);color:#000;border:none;border-radius:9999px;padding:0 28px;font-weight:700;}
-    .back-btn{background:#222;color:#fff;padding:8px 16px;border-radius:9999px;border:none;font-size:14px;}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:100;}
+    .modal-content{background:#0a0a0a;border:1px solid #222;border-radius:28px;padding:40px 28px;max-width:400px;width:90%;text-align:center;}
+    .success{color:#7FFFD4;font-size:56px;margin-bottom:20px;}
   </style>
 </head>
 <body>
 
+  <!-- HEADER -->
   <div class="header">
     <div class="logo">
       <div class="logo-dot">✦</div>
       Zenly AI
     </div>
-    <button onclick="window.location.href='/'" class="back-btn">Back to Home</button>
+    <div style="display:flex;gap:12px;align-items:center;">
+      <div onclick="showProfile()" style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#7FFFD4,#4fc3a1);display:flex;align-items:center;justify-content:center;font-weight:900;cursor:pointer;">Z</div>
+      <button onclick="window.location.href='/'" style="background:#222;color:#fff;padding:8px 16px;border-radius:9999px;border:none;">Back to Home</button>
+    </div>
   </div>
 
+  <!-- TABS -->
   <div class="tabs" id="tabs">
     <div class="tab active" onclick="switchTool(0)">✦ Ask</div>
     <div class="tab" onclick="switchTool(1)">✐ Write</div>
@@ -42,33 +49,55 @@
     <div class="tab" onclick="switchTool(3)">◎ Summarize</div>
   </div>
 
+  <!-- CONTENT -->
   <div class="content">
-    <h1 style="font-family:'Playfair Display',serif;font-size:42px;text-align:center;margin-bottom:4px;">Zenly AI</h1>
-    <p style="text-align:center;color:#7FFFD4;margin-bottom:24px;">Your daily assistant is ready</p>
-
     <div id="chat" class="chat"></div>
   </div>
 
+  <!-- INPUT -->
   <div class="input-bar">
     <input type="text" id="userInput" placeholder="Type your message..." onkeypress="if(event.key==='Enter') sendMessage()">
     <button onclick="sendMessage()">Send</button>
   </div>
 
+  <!-- UPGRADE MODAL -->
+  <div id="upgradeModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2 style="font-family:'Playfair Display',serif;font-size:28px;margin-bottom:16px;">Unlock Unlimited AI</h2>
+      <p style="color:#aaa;margin-bottom:24px;">You've reached your 25 free daily requests.</p>
+      <button onclick="fakeUpgrade()" style="width:100%;padding:16px;background:linear-gradient(135deg,#7FFFD4,#4fc3a1);color:#000;border:none;border-radius:14px;font-weight:800;font-size:16px;margin-bottom:12px;">Upgrade to Pro — $7.99/mo</button>
+      <button onclick="closeModal()" style="background:none;border:none;color:#777;font-size:14px;">Maybe later</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS MODAL -->
+  <div id="successModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="success">🎉</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:28px;margin-bottom:12px;">Welcome to Pro!</h2>
+      <p style="color:#aaa;margin-bottom:32px;">You now have unlimited AI every day.</p>
+      <button onclick="closeSuccessModal()" style="width:100%;padding:16px;background:linear-gradient(135deg,#7FFFD4,#4fc3a1);color:#000;border:none;border-radius:14px;font-weight:800;font-size:16px;">Start Using Pro ✦</button>
+    </div>
+  </div>
+
   <script>
+    let usage = 12; // demo usage count
+    let isPro = false;
     let currentTool = 0;
-    const tools = ["Ask Anything", "Write For Me", "Daily Planner", "Summarize"];
+    const toolNames = ["Ask Anything", "Write For Me", "Daily Planner", "Summarize"];
 
     const sampleReplies = {
-      0: ["That's a great question! Here's what I think...", "Interesting point. Let me help you with that."],
-      1: ["Here's a polished version of your text:", "Here's what I would write:"],
-      2: ["Here's your perfect daily plan:", "I've organized your day like this:"],
-      3: ["Key points from that text:", "Here's the summary:"]
+      0: ["Great question! Here's what I recommend...", "That's interesting. Let me break it down for you."],
+      1: ["Here's a clean, ready-to-send version:", "I rewrote it to sound more professional:"],
+      2: ["Here's your optimized daily plan:", "I've blocked out your day like this:"],
+      3: ["Key takeaways:", "Here's the concise summary:"]
     };
 
     function switchTool(n) {
       currentTool = n;
-      document.querySelectorAll('.tab').forEach((t,i)=> t.classList.toggle('active', i===n));
-      document.getElementById('chat').innerHTML = `<p style="color:#666;text-align:center;margin-top:120px;">👋 Switched to ${tools[n]} mode!<br><br>Try typing something below.</p>`;
+      document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n));
+      const chat = document.getElementById('chat');
+      chat.innerHTML = `<p style="color:#666;text-align:center;margin-top:120px;">Switched to <strong>${toolNames[n]}</strong> mode.<br><br>Try typing below 👇</p>`;
     }
 
     function sendMessage() {
@@ -77,29 +106,55 @@
       if (!text) return;
 
       const chat = document.getElementById('chat');
-      
-      // Add user message
       chat.innerHTML += `<div class="message user">${text}</div>`;
       chat.scrollTop = chat.scrollHeight;
       input.value = '';
 
-      // Fake AI reply after a tiny delay
+      // Fake usage increase
+      usage++;
+      if (!isPro && usage >= 25) {
+        setTimeout(() => document.getElementById('upgradeModal').style.display = 'flex', 600);
+        return;
+      }
+
+      // Fake AI reply
       setTimeout(() => {
         const replies = sampleReplies[currentTool];
-        const reply = replies[Math.floor(Math.random()*replies.length)];
-        chat.innerHTML += `
-          <div class="message ai">
-            ${reply}<br><br>
-            <small style="color:#555;">(This is a demo — real Claude AI coming soon!)</small>
-          </div>`;
+        const reply = replies[Math.floor(Math.random() * replies.length)];
+        chat.innerHTML += `<div class="message ai">${reply}<br><small style="color:#555;">(Demo — real Claude coming soon)</small></div>`;
         chat.scrollTop = chat.scrollHeight;
-      }, 800);
+      }, 700);
     }
 
-    // Welcome message on load
+    function showProfile() {
+      alert("👤 Profile drawer would open here.\n\nDemo user: Zamir Baylor\nFree plan • " + usage + "/25 used today");
+    }
+
+    function fakeUpgrade() {
+      isPro = true;
+      closeModal();
+      setTimeout(() => {
+        document.getElementById('successModal').style.display = 'flex';
+      }, 300);
+    }
+
+    function closeModal() {
+      document.getElementById('upgradeModal').style.display = 'none';
+    }
+
+    function closeSuccessModal() {
+      document.getElementById('successModal').style.display = 'none';
+    }
+
+    // Auto-show success modal if coming from Stripe
     window.onload = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("payment") === "success") {
+        document.getElementById('successModal').style.display = 'flex';
+      }
+
       const chat = document.getElementById('chat');
-      chat.innerHTML = `<p style="color:#666;text-align:center;margin-top:100px;">👋 Hi there! I'm Zenly AI.<br>Choose a tool above and start chatting!</p>`;
+      chat.innerHTML = `<p style="color:#666;text-align:center;margin-top:100px;">👋 Welcome back!<br><br>Choose a tool above and start using Zenly AI.</p>`;
     };
   </script>
 </body>
