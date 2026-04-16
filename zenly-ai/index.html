@@ -29,19 +29,14 @@
 </head>
 <body>
 
-  <!-- HEADER -->
   <div class="header">
     <div class="logo">
       <div class="logo-dot">✦</div>
       Zenly AI
     </div>
-    <div style="display:flex;gap:12px;align-items:center;">
-      <div onclick="showProfile()" style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#7FFFD4,#4fc3a1);display:flex;align-items:center;justify-content:center;font-weight:900;cursor:pointer;">Z</div>
-      <button onclick="window.location.href='/'" style="background:#222;color:#fff;padding:8px 16px;border-radius:9999px;border:none;">Back to Home</button>
-    </div>
+    <button onclick="window.location.href='/'" style="background:#222;color:#fff;padding:8px 16px;border-radius:9999px;border:none;">Back to Home</button>
   </div>
 
-  <!-- TABS -->
   <div class="tabs" id="tabs">
     <div class="tab active" onclick="switchTool(0)">✦ Ask</div>
     <div class="tab" onclick="switchTool(1)">✐ Write</div>
@@ -49,39 +44,17 @@
     <div class="tab" onclick="switchTool(3)">◎ Summarize</div>
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
     <div id="chat" class="chat"></div>
   </div>
 
-  <!-- INPUT -->
   <div class="input-bar">
     <input type="text" id="userInput" placeholder="Type your message..." onkeypress="if(event.key==='Enter') sendMessage()">
     <button onclick="sendMessage()">Send</button>
   </div>
 
-  <!-- UPGRADE MODAL -->
-  <div id="upgradeModal" class="modal" style="display:none;">
-    <div class="modal-content">
-      <h2 style="font-family:'Playfair Display',serif;font-size:28px;margin-bottom:16px;">Unlock Unlimited AI</h2>
-      <p style="color:#aaa;margin-bottom:24px;">You've reached your 25 free daily requests.</p>
-      <button onclick="fakeUpgrade()" style="width:100%;padding:16px;background:linear-gradient(135deg,#7FFFD4,#4fc3a1);color:#000;border:none;border-radius:14px;font-weight:800;font-size:16px;margin-bottom:12px;">Upgrade to Pro — $7.99/mo</button>
-      <button onclick="closeModal()" style="background:none;border:none;color:#777;font-size:14px;">Maybe later</button>
-    </div>
-  </div>
-
-  <!-- SUCCESS MODAL -->
-  <div id="successModal" class="modal" style="display:none;">
-    <div class="modal-content">
-      <div class="success">🎉</div>
-      <h2 style="font-family:'Playfair Display',serif;font-size:28px;margin-bottom:12px;">Welcome to Pro!</h2>
-      <p style="color:#aaa;margin-bottom:32px;">You now have unlimited AI every day.</p>
-      <button onclick="closeSuccessModal()" style="width:100%;padding:16px;background:linear-gradient(135deg,#7FFFD4,#4fc3a1);color:#000;border:none;border-radius:14px;font-weight:800;font-size:16px;">Start Using Pro ✦</button>
-    </div>
-  </div>
-
   <script>
-    let usage = 12; // demo usage count
+    let usage = 12;
     let isPro = false;
     let currentTool = 0;
     const toolNames = ["Ask Anything", "Write For Me", "Daily Planner", "Summarize"];
@@ -110,14 +83,12 @@
       chat.scrollTop = chat.scrollHeight;
       input.value = '';
 
-      // Fake usage increase
       usage++;
       if (!isPro && usage >= 25) {
         setTimeout(() => document.getElementById('upgradeModal').style.display = 'flex', 600);
         return;
       }
 
-      // Fake AI reply
       setTimeout(() => {
         const replies = sampleReplies[currentTool];
         const reply = replies[Math.floor(Math.random() * replies.length)];
@@ -146,16 +117,34 @@
       document.getElementById('successModal').style.display = 'none';
     }
 
-    // Auto-show success modal if coming from Stripe
     window.onload = () => {
       const params = new URLSearchParams(window.location.search);
       if (params.get("payment") === "success") {
         document.getElementById('successModal').style.display = 'flex';
       }
-
       const chat = document.getElementById('chat');
       chat.innerHTML = `<p style="color:#666;text-align:center;margin-top:100px;">👋 Welcome back!<br><br>Choose a tool above and start using Zenly AI.</p>`;
     };
   </script>
+
+  <!-- UPGRADE MODAL -->
+  <div id="upgradeModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2 style="font-family:'Playfair Display',serif;font-size:28px;margin-bottom:16px;">Unlock Unlimited AI</h2>
+      <p style="color:#aaa;margin-bottom:24px;">You've reached your 25 free daily requests.</p>
+      <button onclick="fakeUpgrade()" style="width:100%;padding:16px;background:linear-gradient(135deg,#7FFFD4,#4fc3a1);color:#000;border:none;border-radius:14px;font-weight:800;font-size:16px;margin-bottom:12px;">Upgrade to Pro — $7.99/mo</button>
+      <button onclick="closeModal()" style="background:none;border:none;color:#777;font-size:14px;">Maybe later</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS MODAL -->
+  <div id="successModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="success">🎉</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:28px;margin-bottom:12px;">Welcome to Pro!</h2>
+      <p style="color:#aaa;margin-bottom:32px;">You now have unlimited AI every day.</p>
+      <button onclick="closeSuccessModal()" style="width:100%;padding:16px;background:linear-gradient(135deg,#7FFFD4,#4fc3a1);color:#000;border:none;border-radius:14px;font-weight:800;font-size:16px;">Start Using Pro ✦</button>
+    </div>
+  </div>
 </body>
 </html>
