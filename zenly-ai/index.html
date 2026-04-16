@@ -97,26 +97,6 @@
       }, 700);
     }
 
-    function showProfile() {
-      alert("👤 Profile drawer would open here.\n\nDemo user: Zamir Baylor\nFree plan • " + usage + "/25 used today");
-    }
-
-    function fakeUpgrade() {
-      isPro = true;
-      closeModal();
-      setTimeout(() => {
-        document.getElementById('successModal').style.display = 'flex';
-      }, 300);
-    }
-
-    function closeModal() {
-      document.getElementById('upgradeModal').style.display = 'none';
-    }
-
-    function closeSuccessModal() {
-      document.getElementById('successModal').style.display = 'none';
-    }
-
     window.onload = () => {
       const params = new URLSearchParams(window.location.search);
       if (params.get("payment") === "success") {
@@ -146,5 +126,21 @@
       <button onclick="closeSuccessModal()" style="width:100%;padding:16px;background:linear-gradient(135deg,#7FFFD4,#4fc3a1);color:#000;border:none;border-radius:14px;font-weight:800;font-size:16px;">Start Using Pro ✦</button>
     </div>
   </div>
+
+  <script>
+    function fakeUpgrade() {
+      isPro = true;
+      closeModal();
+      setTimeout(() => {
+        document.getElementById('successModal').style.display = 'flex';
+      }, 300);
+    }
+    function closeModal() {
+      document.getElementById('upgradeModal').style.display = 'none';
+    }
+    function closeSuccessModal() {
+      document.getElementById('successModal').style.display = 'none';
+    }
+  </script>
 </body>
 </html>
